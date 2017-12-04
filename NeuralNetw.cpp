@@ -34,24 +34,23 @@ NeuralNetw::NeuralNetw(int InputN, int OutputN, int HideN, double speed)
 
 void NeuralNetw::Train (std::vector<std::vector<double>> TrainDataSet, std::vector <double> Labels)
 {
-	double * T = new double [Output_N];
-	
-
-	double sum = 0.0;		
+	double * T = new double [Output_N];	
 	int epoch = 0;
-	while (epoch<40)
+	while (epoch<15)
 	{
-		int ok = 0;//number of right answers
-		std::cout << "Number of ep = " << epoch << " Computing cross-entropy..." << std::endl;
+		double ok = 0.0;
+		Mix(TrainDataSet, Labels);
+		std::cout << "-----------------------------------------------------------------" << std::endl;
+		std::cout << "Number of ep = " << epoch << " Computing cross-entrophy..." << std::endl;
 		double cross = 0.0;
 		cross = CrossEntropy(TrainDataSet, Labels);
-		std::cout << "err: " << cross << " ";
+		std::cout << "Cross-entrophy: " << cross << " ";
 		std::cout << std::endl;
 		if (cross <= 0.1)
 		{
 			break;
 		}
-		std::cout << ": Calculating output and changing weights..." << std::endl;
+		std::cout << "Calculating output and changing weights..." << std::endl;
 		for (int i = 0; i < TrainDataSet.size(); i++)
 		{
 			for (int j = 0; j < Input_N; j++)
@@ -64,31 +63,39 @@ void NeuralNetw::Train (std::vector<std::vector<double>> TrainDataSet, std::vect
 				if (j == Labels[i])
 					T[j] = 1.0;
 			}
-			
-			output = check_output(check_hide_output(input));
-			for(int j=0;j< Output_N;j++)
-			{
-				if (output[j] > 0.9)
-					if (T[j] == 1.0)
-						ok++;
-			}
-			
 
+			output = check_output(check_hide_output(input));
+			if (T[find_max(output, Output_N)] == 1.0)
+				ok++;
+			
 			Check_grad(T);
 
 			Change_Weights(GradO, GradH);
 			Change_Delta(GradO, GradH);
 		}
-		std::cout << "Number of right answers: " << ok << std::endl;
+		
+		std::cout << "ok = " << ok<<std::endl;
+		double error_calc = 0.0;
+		error_calc = ok / TrainDataSet.size();
+		std::cout << "persent of right answers = " << error_calc << std::endl;
 		epoch++;
-		if (ok >= TrainDataSet.size()*0.90)
-		{
-			std::cout << "Number of right answers > 90%" << std::endl;
-			break;
-		}
 	}
 };
 
+int NeuralNetw::find_max(double *mas, int size)
+{
+	double max = 0.0;
+	int index = 0;
+	for (int i = 0; i < size; i++)
+	{
+		if (max < mas[i])
+		{
+			max = mas[i];
+			index = i;
+		}
+	}
+	return index;
+};
 double* NeuralNetw::check_hide_output(double * input)
 {
 	nul_mas(Hide_N, sumHide);
@@ -156,30 +163,35 @@ void NeuralNetw::nul_mas(int size, double* mas)
 
 void NeuralNetw:: init_delta_mas()
 {
+
 	for (int j = 0; j < Output_N; j++)
 	{
-		deltaOutput[j] = (double)rand() * (0.5 - (-0.5)) / RAND_MAX + (-0.5);
+		deltaOutput[j] = Get_random_number(-1.0, 1.0);
 	}
 	for (int j = 0; j < Hide_N; j++)
 	{
-		deltaHide[j] = (double)rand() * (0.5 - (-0.5)) / RAND_MAX + (-0.5);
+		deltaHide[j] = Get_random_number(-1.0, 1.0);
 	}
 };
 
+
+
 void NeuralNetw::initialize_weights()
 {
+	
+	
 	for (int i = 0; i < Input_N; i++)
 	{
 		for (int j = 0; j < Hide_N; j++)
 		{
-			Hide_Weights[i][j] = (double)rand() * (0.5 - (-0.5)) / RAND_MAX + (-0.5);
+			Hide_Weights[i][j] = Get_random_number(-1.0, 1.0);
 		}
 	}
 	for (int i = 0; i < Hide_N; i++)
 	{
 		for (int j = 0; j < Output_N; j++)
 		{
-			Output_Weights[i][j] = (double)rand() * (0.5 - (-0.5)) / RAND_MAX + (-0.5);
+			Output_Weights[i][j] = Get_random_number(-1.0, 1.0);
 		}
 	}
 };
@@ -238,7 +250,7 @@ void NeuralNetw::Change_Weights(double * Grad_o, double * Grad_h)
 	{
 		for (int j = 0; j < Output_N; j++)
 		{
-			delta = speed_learning*Grad_o[j]*hide_output[i];
+			delta = speed_learning*Grad_o[j]*hide_output[i]*0.9;
 			Output_Weights[i][j] += delta;
 		}
 	}
@@ -258,7 +270,7 @@ void NeuralNetw::Change_Delta(double * Grad_o, double * Grad_h)
 	
 		for (int j = 0; j < Output_N; j++)
 		{
-			delta = speed_learning*Grad_o[j];
+			delta = speed_learning*Grad_o[j]*0.9;
 			deltaOutput[j] += delta;
 		}
 	
@@ -285,12 +297,14 @@ double NeuralNetw:: CrossEntropy(std::vector<std::vector<double>> TrainDataSet, 
 		{
 			X[j] = TrainDataSet[i][j];
 		}
+		
 		for (int j = 0; j < Output_N; j++)
 		{
 			T[j] = 0.0;
 			if (j == Labels[i])
 				T[j] = 1.0;
 		}
+
 		Y = check_output(check_hide_output(X));
 		for (int j = 0; j < Output_N;j++)
 		{
@@ -299,6 +313,24 @@ double NeuralNetw:: CrossEntropy(std::vector<std::vector<double>> TrainDataSet, 
 	}
 	return (-1)*(sum / TrainDataSet.size());
 
+};
+
+void NeuralNetw::Mix(std::vector <std::vector <double>> Dataset, std::vector <double> Labels) 
+{
+	for (int i = 0; i<Dataset.size(); i++)
+	{
+		int nom1 = rand() % Dataset.size();
+		int nom2 = rand() % Dataset.size();
+
+		std::swap(Dataset[nom1], Dataset[nom2]);
+		std::swap(Labels[nom1], Labels[nom2]);
+	}
+}
+
+double NeuralNetw::Get_random_number(double min, double max)
+{
+	double fr = 1.0 /( (double)RAND_MAX + 0.1);
+	return (double)(rand()*fr*(max - min + 1) + min);
 };
 
 NeuralNetw::~NeuralNetw(void)

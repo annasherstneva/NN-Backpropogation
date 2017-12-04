@@ -121,7 +121,9 @@ int main(int argc, char** argv)
 	input = 28 * 28;
 	hide = 350;
 	output = 10;
-	
+
+
+	cout << "Creating NN..." << endl;
 	NeuralNetw NN = NeuralNetw(input, output, hide,speed);
 
 	cout << "Train set:" << endl;

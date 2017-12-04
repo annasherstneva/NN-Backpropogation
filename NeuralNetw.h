@@ -12,7 +12,7 @@ class NeuralNetw
 public:
 	NeuralNetw(int InputN, int OutputN, int HideN,double speed);
 	void Train(std::vector<std::vector<double>> TrainDataSet, std::vector <double> Labels);
-	double* check_output(double * hide_output);
+	double *check_output(double * hide_output);
 	~NeuralNetw(void);
 
 private:
@@ -48,5 +48,8 @@ private:
 	void Change_Weights(double * Grad_o, double * Grad_h);
 	void Change_Delta(double * Grad_o, double * Grad_h);
 	double CrossEntropy(std::vector<std::vector<double>> TrainDataSet, std::vector <double> Labels);
+	void Mix(std::vector <std::vector <double>> Dataset, std::vector <double> Labels);
+	int find_max(double *mas, int size);
+	double Get_random_number(double min, double max);
 };
 
