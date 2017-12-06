@@ -36,6 +36,9 @@ private:
 	double* GradH;
 	double* GradO;
 
+	double * z_exp;
+	double * soft_max;
+
 	void initialize_weights();
 	void init_delta_mas();
 	double** memory_weights(int before, int current);
@@ -50,6 +53,6 @@ private:
 	double CrossEntropy(std::vector<std::vector<double>> TrainDataSet, std::vector <double> Labels);
 	void Mix(std::vector <std::vector <double>> Dataset, std::vector <double> Labels);
 	int find_max(double *mas, int size);
-	double Get_random_number(double min, double max);
+	double Get_random_number(double min, double max);//double min, double max);
 };
 

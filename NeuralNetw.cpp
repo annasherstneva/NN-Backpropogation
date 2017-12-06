@@ -19,6 +19,9 @@ NeuralNetw::NeuralNetw(int InputN, int OutputN, int HideN, double speed)
 	GradH = new double [HideN];
 	GradO = new double [OutputN];
 
+	z_exp = new double[Output_N];
+	soft_max = new double[Output_N];
+
 	speed_learning = speed;
 	Hide_Weights = memory_weights(InputN, HideN);
 	Output_Weights = memory_weights(HideN, OutputN);
@@ -41,15 +44,9 @@ void NeuralNetw::Train (std::vector<std::vector<double>> TrainDataSet, std::vect
 		double ok = 0.0;
 		Mix(TrainDataSet, Labels);
 		std::cout << "-----------------------------------------------------------------" << std::endl;
-		std::cout << "Number of ep = " << epoch << " Computing cross-entrophy..." << std::endl;
-		double cross = 0.0;
-		cross = CrossEntropy(TrainDataSet, Labels);
-		std::cout << "Cross-entrophy: " << cross << " ";
-		std::cout << std::endl;
-		if (cross <= 0.1)
-		{
-			break;
-		}
+		std::cout << "Number of ep = " << epoch << std::endl;
+		
+	/*	*/
 		std::cout << "Calculating output and changing weights..." << std::endl;
 		for (int i = 0; i < TrainDataSet.size(); i++)
 		{
@@ -73,12 +70,25 @@ void NeuralNetw::Train (std::vector<std::vector<double>> TrainDataSet, std::vect
 			Change_Weights(GradO, GradH);
 			Change_Delta(GradO, GradH);
 		}
-		
-		std::cout << "ok = " << ok<<std::endl;
+		std::cout << " Computing cross-entrophy..." << std::endl;
+		double cross = 0.0;
+		cross = CrossEntropy(TrainDataSet, Labels);
+		std::cout << "Cross-entrophy: " << cross << " ";
+		std::cout << std::endl;
+		std::cout << "Number of right answers = " << ok<<std::endl;
 		double error_calc = 0.0;
 		error_calc = ok / TrainDataSet.size();
-		std::cout << "persent of right answers = " << error_calc << std::endl;
+		std::cout << "Part of wrong answers = " <<(1- error_calc )<< std::endl;
 		epoch++;
+		if (cross <= 0.001)
+		{
+			break;
+		}
+		if (1 - error_calc <= 0.001)
+		{
+			break;
+		}
+		
 	}
 };
 
@@ -139,7 +149,7 @@ double* NeuralNetw::check_output(double *hide_output)
 
 double NeuralNetw::BinSigmFun(double x)
 {
-		return 1/(1+exp(-x));
+		return 1.0/(1.0+std::exp(-x));
 };
 
 double** NeuralNetw::memory_weights(int before, int current)
@@ -166,7 +176,7 @@ void NeuralNetw:: init_delta_mas()
 
 	for (int j = 0; j < Output_N; j++)
 	{
-		deltaOutput[j] = Get_random_number(-1.0, 1.0);
+		deltaOutput[j] = Get_random_number(-1.0,1.0);
 	}
 	for (int j = 0; j < Hide_N; j++)
 	{
@@ -198,8 +208,7 @@ void NeuralNetw::initialize_weights()
 
 double* NeuralNetw::softmax(double* sumOut)
 {
-	double * z_exp = new double [Output_N];
-	double * soft_max = new double [Output_N];
+
 	for (int i=0;i< Output_N; i++)
 	{
 		z_exp[i] = exp(sumOut[i]);
@@ -330,9 +339,16 @@ void NeuralNetw::Mix(std::vector <std::vector <double>> Dataset, std::vector <do
 double NeuralNetw::Get_random_number(double min, double max)
 {
 	double fr = 1.0 /( (double)RAND_MAX + 0.1);
-	return (double)(rand()*fr*(max - min + 1) + min);
+	return (double)(rand()*fr*(max - min) + min);
 };
 
+
+/*float NeuralNetw::Get_random_number() 
+{
+	float num = (float)dis(gen);
+	float factor = (float)dis(gen);
+	return factor < 0.5f ? -num : num;
+}*/
 NeuralNetw::~NeuralNetw(void)
 {
 }

@@ -35,19 +35,21 @@ void ReadMNIST(vector<vector<double>> &arr, std::string name)
 		file.read((char*)&n_cols, sizeof(n_cols));
 		n_cols = ReverseInt(n_cols);
 
-		arr.resize(number_of_images);
+		//arr.resize(number_of_images);
 
 		for (int i = 0;i<number_of_images;++i)
 		{
+			std::vector<double> vec;
 			for (int r = 0;r<n_rows;++r)
 			{
 				for (int c = 0;c<n_cols;++c)
 				{
 					unsigned char temp = 0;
 					file.read((char*)&temp, sizeof(temp));
-					arr[i].push_back((double)temp/255.0);
+					vec.push_back((double)temp/255.0);
 				}
 			}
+			arr.push_back(vec);
 		}
 	}
 }
@@ -65,15 +67,11 @@ void ReadLabelsMNIST(vector<double> &arr, std::string name)
 		magic_number = ReverseInt(magic_number);
 		file.read((char*)&number_of_images, sizeof(number_of_images));
 		number_of_images = ReverseInt(number_of_images);
-		file.read((char*)&n_rows, sizeof(n_rows));
-		n_rows = ReverseInt(n_rows);
-		file.read((char*)&n_cols, sizeof(n_cols));
-		n_cols = ReverseInt(n_cols);
 		for (int i = 0;i<number_of_images;++i)
 		{
 			unsigned char temp = 0;
 			file.read((char*)&temp, sizeof(temp));
-			arr.push_back((double)temp);
+			arr.push_back(double(temp));
 		}
 	}
 }
@@ -83,7 +81,7 @@ int main(int argc, char** argv)
 	int input;
 	int output;
 	int hide;
-	double speed = 0.08;
+	double speed = 0.008;
 	if (argc < 5) {
 		cout << "Input necessary arguments" << endl;
 		cout << "Path to every Mnist sets / labels with it names if form like this: 'C:\\t10k-images.idx3-ubyte' " << endl;
@@ -92,7 +90,7 @@ int main(int argc, char** argv)
 		cout << "Path to Mnist train labels " << endl;
 		cout << "Path to Mnist test images " << endl;
 		cout << "Path to Mnist test labels " << endl;
-		cout << "Speed of learning (by default speed = 0.08)" << endl;
+		cout << "Speed of learning (by default speed = 0.008)" << endl;
 		return 0;
 	}
 	
@@ -114,12 +112,12 @@ int main(int argc, char** argv)
 
 	ReadMNIST(Testset, test);
 	ReadLabelsMNIST(TestLabels, testl);
-
+	
 	ReadMNIST(Dataset, train);
 	ReadLabelsMNIST(Labels, trainl);
 
 	input = 28 * 28;
-	hide = 350;
+	hide = 200;
 	output = 10;
 
 
